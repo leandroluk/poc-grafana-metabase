@@ -1,0 +1,14 @@
+{
+  "recommendations": [
+    // to run jest tests clicking directly on file
+    "firsttris.vscode-jest-runner",
+    // beautyfull icons
+    "vscode-icons-team.vscode-icons",
+    // eslint formatter
+    "dbaeumer.vscode-eslint",
+    // sonarlint codesmell check
+    "SonarSource.sonarlint-vscode",
+    // to create folder barrels (index.ts files)
+    "mikerhyssmith.ts-barrelr"
+  ]
+}

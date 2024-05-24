@@ -1,0 +1,71 @@
+name: poc-grafana-metabase
+
+networks:
+  poc-grafana-metabase: 
+    name: poc-grafana-metabase
+
+services:
+  poc-grafana-metabase-mongo:
+    image: mongo
+    hostname: mongo
+    container_name: poc-grafana-metabase-mongo
+    ports: [ '${MONGO_PORT:-40000}:27017' ]
+    networks: [ 'poc-grafana-metabase' ]
+    volumes: ['./.docker/mongo:/data/db' ]
+    environment: 
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME:-mongo}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD:-mongo}
+      - MONGO_INITDB_DATABASE=${MONGO_DATABASE:-mongo}
+    healthcheck:
+      test: ['CMD', 'mongo', '--eval', 'db.stats()']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  poc-grafana-metabase-postgres:
+    image: postgres
+    hostname: postgres
+    container_name: poc-grafana-metabase-postgres
+    ports: [ '${POSTGRES_PORT:-40001}:5432' ]
+    networks: [ 'poc-grafana-metabase' ]
+    volumes: [ './.docker/postgres:/var/lib/postgresql/data' ]
+    environment:
+      - POSTGRES_USER=${POSTGRES_USERNAME:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DATABASE:-postgres}
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+
+  poc-grafana-metabase-grafana:
+    image: grafana/grafana:latest
+    container_name: poc-grafana-metabase-grafana
+    ports: [ '${GRAFANA_PORT:-40002}:3000' ]
+    networks: [ 'poc-grafana-metabase' ]
+    volumes: [ './.docker/grafana:/var/lib/grafana' ]
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USERNAME:-grafana}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-grafana}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  poc-grafana-metabase-metabase:
+    image: metabase/metabase:latest
+    container_name: metabase
+    ports: [ '${METABASE_PORT:-40003}:3000' ]
+    networks: [ 'poc-grafana-metabase' ]
+    volumes: [ './.docker/metabase:/metabase-data' ]
+    environment:
+      - MB_DB_FILE=/metabase-data/metabase.db
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
